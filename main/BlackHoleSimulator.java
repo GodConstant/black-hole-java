@@ -1,26 +1,24 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
+import javax.swing.*;
 
 /**
- * Advanced 2D Black Hole Simulator
+ *  2D Black Hole Simulator
  */
-public class BlackHoleSimulation extends JPanel implements ActionListener {
+public class BlackHoleSimulator extends JPanel implements ActionListener {
 
     // --- CONFIGURATION CONSTANTS ---
     private static final int WIDTH = 1000;
     private static final int HEIGHT = 800;
     
     // Physics: Stronger gravity makes the effect more obvious
-    private static final double GRAVITY = 2000.0;       
+    private static final double GRAVITY = 600.0;      
     private static final double EVENT_HORIZON = 40.0; 
     
     // Friction: 0.998 means they keep 99.8% of their speed (lose 0.2% per frame)
-    // This small loss is what causes the spiral orbit.
     private static final double FRICTION = 0.998;     
     
     // Trails enabled
@@ -32,7 +30,7 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
     private Random rand;
     private final Point center; 
 
-    public BlackHoleSimulation() {
+    public  BlackHoleSimulator() {
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         this.setBackground(Color.BLACK);
         this.setFocusable(true);
@@ -58,8 +56,8 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_SPACE) particles.clear();
-                if(e.getKeyCode() == KeyEvent.VK_R) spawnGalaxy();
+                if(e.getKeyCode() == KeyEvent.VK_SPACE) spawnGalaxy(); // Changed logic to respawn on space
+                if(e.getKeyCode() == KeyEvent.VK_R) particles.clear(); // Clear on R
             }
         });
 
@@ -83,6 +81,8 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
             double y = center.y + Math.sin(angle) * distance;
             
             double speed = Math.sqrt(GRAVITY / distance);
+            
+            // Perpendicular velocity for orbit
             double vx = -Math.sin(angle) * speed;
             double vy = Math.cos(angle) * speed;
 
@@ -159,18 +159,16 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
             g2.fillRect(0, 0, getWidth(), getHeight());
         }
 
-        // Draw Particles using the logic from your provided code
+        // Draw Particles
         for (Particle p : particles) {
             // Calculate distance for color logic
             double dist = Math.sqrt(Math.pow(center.x - p.x, 2) + Math.pow(center.y - p.y, 2));
             
-            // Color Logic copied from your snippet:
-            // Red = Close, Orange = Medium, Cyan = Far
+            // Color Logic
             if (dist < 100) g2.setColor(Color.RED);
             else if (dist < 250) g2.setColor(Color.ORANGE);
             else g2.setColor(Color.CYAN);
 
-            // Changed size from 6 back to 3
             g2.fillOval((int)p.x, (int)p.y, 3, 3);
         }
 
@@ -193,15 +191,27 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
         // UI
         g2.setColor(Color.WHITE);
         g2.drawString("Particles: " + particles.size(), 10, 20);
-        g2.drawString("[R] Reset  |  [SpaceBar] Spawn", 10, 35);
+        g2.drawString("[SpaceBar] Spawn Galaxy | [R] Clear | [Left Click] Spawn Cluster", 10, 35);
     }
+
+    static class Particle {
+        double x, y;   // Position
+        double vx, vy; // Velocity
+
+        public Particle(double x, double y, double vx, double vy) {
+            this.x = x;
+            this.y = y;
+            this.vx = vx;
+            this.vy = vy;
+        }
+    }
+    // ------------------------
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // Reverted to standard Title
             JFrame frame = new JFrame("Black Hole Simulator");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.add(new BlackHoleSimulation());
+            frame.add(new BlackHoleSimulator());
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
