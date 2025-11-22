@@ -8,7 +8,6 @@ import java.util.Random;
 
 /**
  * Advanced 2D Black Hole Simulator
- * IMPORTANT: Save this file as "BlackHoleSimulation.java"
  */
 public class BlackHoleSimulation extends JPanel implements ActionListener {
 
@@ -194,30 +193,18 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
         // UI
         g2.setColor(Color.WHITE);
         g2.drawString("Particles: " + particles.size(), 10, 20);
-        g2.drawString("[R] Reset  |  [Click] Spawn", 10, 35);
+        g2.drawString("[R] Reset  |  [SpaceBar] Spawn", 10, 35);
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Combined Black Hole Simulator");
+            // Reverted to standard Title
+            JFrame frame = new JFrame("Black Hole Simulator");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.add(new BlackHoleSimulation());
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
-    }
-
-    // Simple class to store particle data (Copied from your snippet)
-    private static class Particle {
-        double x, y;   // Position
-        double vx, vy; // Velocity
-
-        Particle(double x, double y, double vx, double vy) {
-            this.x = x;
-            this.y = y;
-            this.vx = vx;
-            this.vy = vy;
-        }
     }
 }
