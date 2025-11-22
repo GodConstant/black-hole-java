@@ -16,7 +16,7 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
     private static final int WIDTH = 1000;
     private static final int HEIGHT = 800;
     
-    // Physics: Stronger gravity makes the effect more obvious
+    // Physics: Reduced from 2000.0 to 600.0 to slow down the movement
     private static final double GRAVITY = 2000.0;       
     private static final double EVENT_HORIZON = 40.0; 
     
@@ -74,9 +74,11 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
     private void spawnGalaxy() {
         particles.clear();
         double minDist = EVENT_HORIZON * 2.5;
-        double maxDist = 350; 
+        // Increased maxDist from 350 to 450 to spread particles out across the screen
+        double maxDist = 450; 
 
-        for (int i = 0; i < 1200; i++) {
+        // Increased particle count from 1200 to 3500
+        for (int i = 0; i < 5000; i++) {
             double angle = rand.nextDouble() * Math.PI * 2;
             double distance = minDist + (rand.nextDouble() * (maxDist - minDist));
             
@@ -93,8 +95,9 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
 
     private void spawnCluster(Point start) {
         for (int i = 0; i < 50; i++) { 
-            double x = start.x + (rand.nextDouble() * 20 - 10);
-            double y = start.y + (rand.nextDouble() * 20 - 10);
+            // Increased spread from 20 to 80 so clicked particles aren't so clumped
+            double x = start.x + (rand.nextDouble() * 80 - 40);
+            double y = start.y + (rand.nextDouble() * 80 - 40);
             
             double dx = center.x - x;
             double dy = center.y - y;
@@ -194,12 +197,12 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
         // UI
         g2.setColor(Color.WHITE);
         g2.drawString("Particles: " + particles.size(), 10, 20);
-        g2.drawString("[R] Reset  |  [Click] Spawn", 10, 35);
+        g2.drawString("[R] Reset  |  [SpaceBar] Spawn", 10, 35);
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Combined Black Hole Simulator");
+            JFrame frame = new JFrame("Black Hole Simulator");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.add(new BlackHoleSimulation());
             frame.pack();

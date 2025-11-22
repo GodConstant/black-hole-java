@@ -24,7 +24,7 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
     // This small loss is what causes the spiral orbit.
     private static final double FRICTION = 0.998;     
     
-    // Trails enabled
+    // Re-enabled trails to see particle paths
     private static final boolean ENABLE_TRAILS = true; 
 
     // --- VARIABLES ---
@@ -70,6 +70,7 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
 
     /**
      * Creates the ring of particles.
+     * Math: Uses Polar Coordinates (Angle + Distance) to place dots in a circle.
      */
     private void spawnGalaxy() {
         particles.clear();
@@ -77,13 +78,25 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
         double maxDist = 350; 
 
         for (int i = 0; i < 1200; i++) {
+            // 1. Pick a random angle (0 to 360 degrees)
             double angle = rand.nextDouble() * Math.PI * 2;
+            
+            // 2. Pick a random distance from center
             double distance = minDist + (rand.nextDouble() * (maxDist - minDist));
             
+            // 3. Convert to X/Y Position (Polar -> Cartesian)
+            // x = cos(angle) * r
+            // y = sin(angle) * r
             double x = center.x + Math.cos(angle) * distance;
             double y = center.y + Math.sin(angle) * distance;
             
+            // 4. Calculate Perfect Orbit Speed
+            // Formula: Velocity = Sqrt( Gravity / Radius )
             double speed = Math.sqrt(GRAVITY / distance);
+            
+            // 5. Set Velocity Direction (Perpendicular to the black hole)
+            // To orbit, you move 90 degrees to the pull of gravity.
+            // If position is (cos, sin), perpendicular is (-sin, cos).
             double vx = -Math.sin(angle) * speed;
             double vy = Math.cos(angle) * speed;
 
@@ -93,14 +106,17 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
 
     private void spawnCluster(Point start) {
         for (int i = 0; i < 50; i++) { 
+            // Simple random spread
             double x = start.x + (rand.nextDouble() * 20 - 10);
             double y = start.y + (rand.nextDouble() * 20 - 10);
             
+            // Calculate speed based on distance so they don't immediately fall in
             double dx = center.x - x;
             double dy = center.y - y;
             double dist = Math.sqrt(dx*dx + dy*dy);
             double speed = Math.sqrt(GRAVITY / dist);
 
+            // Add some random velocity
             double vx = (-dy/dist) * speed * 0.8; 
             double vy = (dx/dist) * speed * 0.8;
 
@@ -114,13 +130,23 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
         repaint();
     }
 
+    /**
+     * The Main Physics Engine
+     * Steps:
+     * 1. Calculate Distance to center.
+     * 2. Calculate Gravity Strength (Newton's Law).
+     * 3. Move Particle.
+     */
     private void updatePhysics() {
         Iterator<Particle> it = particles.iterator();
         while (it.hasNext()) {
             Particle p = it.next();
             
+            // 1. Calculate Vector to Center (dx, dy)
             double dx = center.x - p.x;
             double dy = center.y - p.y;
+            
+            // 2. Calculate Distance (Pythagorean Theorem: a^2 + b^2 = c^2)
             double distance = Math.sqrt(dx*dx + dy*dy);
 
             // --- EVENT HORIZON (Delete if too close) ---
@@ -129,20 +155,30 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
                 continue;
             }
 
+            // 3. Normalization: Get the "Direction" alone (length 1)
             double dirX = dx / distance;
             double dirY = dy / distance;
 
+            // 4. Calculate Gravity Force
+            // Formula: F = G / (distance * distance)
+            // We enforce a minimum distance (10.0) to avoid dividing by zero errors
             double safeDist = Math.max(distance, 10.0);
             double force = GRAVITY / (safeDist * safeDist);
 
+            // 5. Apply Force to Velocity (Acceleration)
             p.vx += dirX * force;
             p.vy += dirY * force;
 
+            // 6. Apply Friction (The Spiral Effect)
             p.vx *= FRICTION;
             p.vy *= FRICTION;
 
+            // 7. Move Particle
             p.x += p.vx;
             p.y += p.vy;
+            
+            // Calculate speed for coloring later
+            p.speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
         }
     }
 
@@ -160,19 +196,15 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
             g2.fillRect(0, 0, getWidth(), getHeight());
         }
 
-        // Draw Particles using the logic from your provided code
+        // Draw Particles
         for (Particle p : particles) {
-            // Calculate distance for color logic
-            double dist = Math.sqrt(Math.pow(center.x - p.x, 2) + Math.pow(center.y - p.y, 2));
+            // Color Logic: Faster = Blue, Slower = Red
+            float speedRatio = (float) Math.min(p.speed / 10.0, 1.0f);
+            float hue = 0.0f + (speedRatio * 0.6f); 
             
-            // Color Logic copied from your snippet:
-            // Red = Close, Orange = Medium, Cyan = Far
-            if (dist < 100) g2.setColor(Color.RED);
-            else if (dist < 250) g2.setColor(Color.ORANGE);
-            else g2.setColor(Color.CYAN);
-
-            // Changed size from 6 back to 3
-            g2.fillOval((int)p.x, (int)p.y, 3, 3);
+            g2.setColor(Color.getHSBColor(hue, 0.8f, 1.0f));
+            // Increased size from 3 to 6
+            g2.fill(new Ellipse2D.Double(p.x, p.y, 6, 6));
         }
 
         // Draw Black Hole
@@ -199,7 +231,7 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Combined Black Hole Simulator");
+            JFrame frame = new JFrame("Simplified Black Hole");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.add(new BlackHoleSimulation());
             frame.pack();
@@ -208,16 +240,10 @@ public class BlackHoleSimulation extends JPanel implements ActionListener {
         });
     }
 
-    // Simple class to store particle data (Copied from your snippet)
     private static class Particle {
-        double x, y;   // Position
-        double vx, vy; // Velocity
-
-        Particle(double x, double y, double vx, double vy) {
-            this.x = x;
-            this.y = y;
-            this.vx = vx;
-            this.vy = vy;
+        double x, y, vx, vy, speed;
+        public Particle(double x, double y, double vx, double vy) {
+            this.x = x; this.y = y; this.vx = vx; this.vy = vy;
         }
     }
 }
